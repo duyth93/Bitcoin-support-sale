@@ -324,6 +324,7 @@ BitcoinMainView.prototype = {
             tempVolume2 = parseFloat(btcBalance / (data.bid_price_volume_list[0].price * 1.0025) - 0.5).toFixed(8);
           }
           $('#ip_bid_price').val(data.bid_price_volume_list[0].price);
+          $('#ip_bid_price').attr('data-volume', data.bid_price_volume_list[0].volume);
           $('#ip_buy_volume').val(tempVolume2);
           check_buy_sell_price_and_notice();
         }
@@ -358,6 +359,7 @@ BitcoinMainView.prototype = {
             tempVolume = wncBalance;
           }
           $('#ip_sell_price').val(data.sell_price_volume_list[0].price);
+          $('#ip_sell_price').attr('data-volume', data.sell_price_volume_list[0].volume);
           $('#ip_sell_volume').val(tempVolume);
           check_buy_sell_price_and_notice();
         }
@@ -555,6 +557,9 @@ $(document).on('click', '.sell-price-list-item', function() {
   var volume = parseFloat($(this).data('volume')).toFixed(8);
   var wncBalance = parseFloat($('#ip_wnc_balance').val()).toFixed(8);
 
+  // set data-val for #ip_sell_price
+  $('#ip_sell_price').attr('data-volume', volume);
+
   if (volume < 1) {
     volume = 1;
   } else if (volume > wncBalance) {
@@ -571,6 +576,9 @@ $(document).on('click', '.bid-price-list-item', function() {
   var value = parseFloat($(this).data('value')).toFixed(8);
   var volume = parseFloat($(this).data('volume')).toFixed(8);
   var btcBalance = parseFloat($('#ip_btc_balance').val()).toFixed(8);
+
+  // set data-val for #ip_bid_price
+  $('#ip_bid_price').attr('data-volume', volume);
 
   if (volume < 1) {
     volume = 1;
@@ -599,9 +607,9 @@ function check_buy_sell_price_and_notice() {
   var noticePoint = parseFloat($('#notice_point').val()).toFixed(8);
   if (noticePoint != '' & noticePoint > 0) {
     var sellPrice = parseFloat($('#ip_sell_price').val()).toFixed(8);
-    var sellVolume = parseFloat($('#ip_sell_volume').val()).toFixed(8);
+    var sellVolume = parseFloat($('#ip_sell_price').attr('data-volume')).toFixed(8);
     var bidPrice = parseFloat($('#ip_bid_price').val()).toFixed(8);
-    var buyVolume = parseFloat($('#ip_buy_volume').val()).toFixed(8);
+    var buyVolume = parseFloat($('#ip_bid_price').attr('data-volume')).toFixed(8);
     if (bidPrice - sellPrice > noticePoint) {
       // render msg
       var html = (function() {/*
@@ -614,9 +622,14 @@ function check_buy_sell_price_and_notice() {
       var template = $.templates(html);
       var data = {'bid_price' : bidPrice, 'buy_volume' : buyVolume, 'sell_price' : sellPrice, 'sell_volume' : sellVolume, 'notice_point' : noticePoint};
       $("#buybtc-loading").parent().parent().parent().append(template.render(data));
-      setTimeout(function(){
-        $('.err-msg:first').remove();
-      }, 3000);
+    } else {
+      remove_err_mes();
     }
+  } else {
+    remove_err_mes();
   }
+}
+
+function remove_err_mes() {
+  $('.err-msg').remove();
 }
