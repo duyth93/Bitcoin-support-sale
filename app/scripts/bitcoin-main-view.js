@@ -191,6 +191,7 @@ BitcoinMainView.prototype = {
 
       if (!sellInputing) {
         $('#ip_sell_price').val(data.sell_price_volume_list[0].price);
+        $('#ip_sell_volume').val(data.sell_price_volume_list[0].volume);
       }
     });
 
@@ -206,7 +207,8 @@ BitcoinMainView.prototype = {
       $('#bid_price_volume_list').append(templateBuy.render(data));
 
       if (!buyInputing) {
-
+        $('#ip_bid_price').val(data.bid_price_volume_list[0].price);
+        $('#ip_buy_volume').val(data.bid_price_volume_list[0].volume);
       }
     });
 
@@ -367,17 +369,34 @@ $(document).on('click', '.btnCancelOrder', function() {
   });
 });
 
+// focus set inputing true, loose focus set inputing false
 $(document).on('focus', '#ip_bid_price', function() {
+  buyInputing = true;
   $('#bid_price_volume_list').removeClass('hidden');
 });
 
-// $(document).on('blur', '#ip_bid_price', function() {
-//   $('#bid_price_volume_list').addClass('hidden');
-// });
+$(document).on('focus', '#ip_buy_volume', function() {
+  buyInputing = true;
+});
+
+$(document).on('blur', '#ip_bid_price, #ip_buy_volume', function() {
+  buyInputing = false;
+});
 
 $(document).on('focus', '#ip_sell_price', function() {
+  sellInputing = true;
   $('#sell_price_volume_list').removeClass('hidden');
 });
+
+$(document).on('focus', '#ip_sell_volume', function() {
+  sellInputing = true;
+});
+
+$(document).on('blur', '#ip_sell_price, #ip_sell_volume', function() {
+  sellInputing = false;
+});
+
+// ======== focus set inputing true, loose focus set inputing false
 
 $(document).on('click', '.sell-price-list-item', function() {
   var value = parseFloat($(this).data('value')).toFixed(8);
