@@ -7,7 +7,7 @@ BitcoinMainView.prototype = {
   <div id="inputForm">
     <h4>Buy/Sell WNC</h4>
     <div class="section">
-      BTC: <input type="number" value="{{:btc_balance}}" readonly id="ip_btc_balance" style="background-color: #eeeeee;">(BTC) - WCN: <input type="number" value="{{:wcn_balance}}" readonly id="ip_wnc_balance" style="background-color: #eeeeee;">(WNC)
+      BTC: <input type="number" value="{{:btc_balance}}" readonly id="ip_btc_balance" style="background-color: #eeeeee;">(BTC) - WCN: <input type="number" value="{{:wcn_balance}}" readonly id="ip_wcn_balance" style="background-color: #eeeeee;">(WNC)
     </div>
     <div class="section">
       Bid Price:
@@ -177,51 +177,72 @@ BitcoinMainView.prototype = {
     var data = {'sell_price_volume_list' : [], 'bid_price_volume_list' : []};
     var templateSell = $.templates(htmlSell);
     var templateBuy = $.templates(htmlBuy);
+    var tempVolume, tempVolume2;
+    var btcBalance;
+    var wcnBalance;
 
     // get old sell price and old sell volume
-    var oldSellPrice = $('#sell_price_volume_list li:first').data('value');
-    var oldSellVolume = $('#sell_price_volume_list li:first').data('volume');
+    var oldSellPrice = parseFloat($('#sell_price_volume_list li:first').data('value')).toFixed(8);
+    var oldSellVolume = parseFloat($('#sell_price_volume_list li:first').data('volume')).toFixed(8);
 
     // get old sell price and old buy volume
-    var oldBuyPrice = $('#bid_price_volume_list li:first').data('value');
-    var oldBuyVolume = $('#bid_price_volume_list li:first').data('volume');
+    var oldBuyPrice = parseFloat($('#bid_price_volume_list li:first').data('value')).toFixed(8);
+    var oldBuyVolume = parseFloat($('#bid_price_volume_list li:first').data('volume')).toFixed(8);
 
-    $.get('/dashboard/ajaxmarketbuy', function(response) {
-      $(response).find("table tbody tr").each(function(index, item){
-        if(data.sell_price_volume_list.length < 5) {
-          var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
-          var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
-          data.sell_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+    $.get('/dashboard/ajaxbuybtc', function(response) {
+      btcBalance = parseFloat($(response).find('#balance').val()).toFixed(8);
+      $('#ip_btc_balance').val(btcBalance);
+      $.get('/dashboard/ajaxmarketsell', function(response) {
+        $(response).find("table tbody tr").each(function(index, item){
+          if(data.bid_price_volume_list.length < 5) {
+            var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
+            var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
+            data.bid_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+          }
+        });
+        $('#bid_price_volume_list').children().remove();
+        $('#bid_price_volume_list').append(templateBuy.render(data));
+
+        if ($('#ip_bid_price').val() == '' || (!buyInputing && (data.bid_price_volume_list[0].price != oldBuyPrice || data.bid_price_volume_list[0].volume != oldBuyVolume))) {
+          tempVolume2 = data.bid_price_volume_list[0].volume;
+          if (tempVolume2 < 1) {
+            tempVolume2 = 1;
+          } else if (tempVolume2 > (btcBalance / (data.bid_price_volume_list[0].price * 1.0025))) {
+            tempVolume2 = parseFloat(btcBalance / (data.bid_price_volume_list[0].price * 1.0025) - 0.5).toFixed(8);
+          }
+          $('#ip_bid_price').val(data.bid_price_volume_list[0].price);
+          $('#ip_buy_volume').val(tempVolume2);
         }
       });
-      $('#sell_price_volume_list').children().remove();
-      $('#sell_price_volume_list').append(templateSell.render(data));
-
-
-      if ($('#ip_sell_price').val() == '' || (!sellInputing && (data.sell_price_volume_list[0].price != oldSellPrice || data.sell_price_volume_list[0].volume != oldSellVolume))) {
-        $('#ip_sell_price').val(data.sell_price_volume_list[0].price);
-        $('#ip_sell_volume').val(data.sell_price_volume_list[0].volume);
-      }
     });
 
-    $.get('/dashboard/ajaxmarketsell', function(response) {
-      $(response).find("table tbody tr").each(function(index, item){
-        if(data.bid_price_volume_list.length < 5) {
-          var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
-          var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
-          data.bid_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+    $.get('/dashboard/ajaxsellbtc', function(response) {
+      wcnBalance = parseFloat($(response).find('#balance2').val()).toFixed(8);
+      $('#ip_wcn_balance').val(wcnBalance);
+      $.get('/dashboard/ajaxmarketbuy', function(response) {
+        $(response).find("table tbody tr").each(function(index, item){
+          if(data.sell_price_volume_list.length < 5) {
+            var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
+            var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
+            data.sell_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+          }
+        });
+        $('#sell_price_volume_list').children().remove();
+        $('#sell_price_volume_list').append(templateSell.render(data));
+
+
+        if ($('#ip_sell_price').val() == '' || (!sellInputing && (data.sell_price_volume_list[0].price != oldSellPrice || data.sell_price_volume_list[0].volume != oldSellVolume))) {
+          tempVolume = data.sell_price_volume_list[0].volume;
+          if (tempVolume < 1) {
+            tempVolume = 1;
+          } else if (tempVolume > wcnBalance) {
+            tempVolume = wcnBalance;
+          }
+          $('#ip_sell_price').val(data.sell_price_volume_list[0].price);
+          $('#ip_sell_volume').val(tempVolume);
         }
       });
-      $('#bid_price_volume_list').children().remove();
-      $('#bid_price_volume_list').append(templateBuy.render(data));
-
-      if ($('#ip_bid_price').val() == '' || (!buyInputing && (data.bid_price_volume_list[0].price != oldBuyPrice || data.bid_price_volume_list[0].volume != oldBuyVolume))) {
-        $('#ip_bid_price').val(data.bid_price_volume_list[0].price);
-        $('#ip_buy_volume').val(data.bid_price_volume_list[0].volume);
-      }
     });
-
-    return data;
   }
 };
 
@@ -307,7 +328,7 @@ $(document).on('change', '.combo-box', function() {
 
 // $(document).on('change', '#sell_price_list', function() {
 //   var chosen = $("option:selected", this).data('id');
-//   var wcn_balance = parseFloat($('#ip_wnc_balance').val());
+//   var wcn_balance = parseFloat($('#ip_wcn_balance').val());
 //   if (chosen != 0) {
 //     var volume = parseFloat($("option:selected", this).data('volume'));
 
@@ -410,6 +431,14 @@ $(document).on('blur', '#ip_sell_price, #ip_sell_volume', function() {
 $(document).on('click', '.sell-price-list-item', function() {
   var value = parseFloat($(this).data('value')).toFixed(8);
   var volume = parseFloat($(this).data('volume')).toFixed(8);
+  var wcnBalance = parseFloat($('#ip_wcn_balance').val()).toFixed(8);
+
+  if (volume < 1) {
+    volume = 1;
+  } else if (volume > wcnBalance) {
+    volume = wcnBalance;
+  }
+
   $('#ip_sell_price').val(value);
   $('#ip_sell_volume').val(volume);
   $('#sell_price_volume_list').addClass('hidden');
@@ -418,6 +447,14 @@ $(document).on('click', '.sell-price-list-item', function() {
 $(document).on('click', '.bid-price-list-item', function() {
   var value = parseFloat($(this).data('value')).toFixed(8);
   var volume = parseFloat($(this).data('volume')).toFixed(8);
+  var btcBalance = parseFloat($('#ip_btc_balance').val()).toFixed(8);
+
+  if (volume < 1) {
+    volume = 1;
+  } else if (volume > (btcBalance / (value * 1.0025))) {
+    volume = parseFloat(btcBalance / (value * 1.0025) - 0.5).toFixed(8);
+  }
+
   $('#ip_bid_price').val(value);
   $('#ip_buy_volume').val(volume);
   $('#bid_price_volume_list').addClass('hidden');
