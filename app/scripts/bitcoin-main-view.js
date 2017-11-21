@@ -178,6 +178,14 @@ BitcoinMainView.prototype = {
     var templateSell = $.templates(htmlSell);
     var templateBuy = $.templates(htmlBuy);
 
+    // get old sell price and old sell volume
+    var oldSellPrice = $('#sell_price_volume_list li:first').data('value');
+    var oldSellVolume = $('#sell_price_volume_list li:first').data('volume');
+
+    // get old sell price and old buy volume
+    var oldBuyPrice = $('#bid_price_volume_list li:first').data('value');
+    var oldBuyVolume = $('#bid_price_volume_list li:first').data('volume');
+
     $.get('/dashboard/ajaxmarketbuy', function(response) {
       $(response).find("table tbody tr").each(function(index, item){
         if(data.sell_price_volume_list.length < 5) {
@@ -189,7 +197,8 @@ BitcoinMainView.prototype = {
       $('#sell_price_volume_list').children().remove();
       $('#sell_price_volume_list').append(templateSell.render(data));
 
-      if (!sellInputing) {
+
+      if ($('#ip_sell_price').val() == '' || (!sellInputing && (data.sell_price_volume_list[0].price != oldSellPrice || data.sell_price_volume_list[0].volume != oldSellVolume))) {
         $('#ip_sell_price').val(data.sell_price_volume_list[0].price);
         $('#ip_sell_volume').val(data.sell_price_volume_list[0].volume);
       }
@@ -206,7 +215,7 @@ BitcoinMainView.prototype = {
       $('#bid_price_volume_list').children().remove();
       $('#bid_price_volume_list').append(templateBuy.render(data));
 
-      if (!buyInputing) {
+      if ($('#ip_bid_price').val() == '' || (!buyInputing && (data.bid_price_volume_list[0].price != oldBuyPrice || data.bid_price_volume_list[0].volume != oldBuyVolume))) {
         $('#ip_bid_price').val(data.bid_price_volume_list[0].price);
         $('#ip_buy_volume').val(data.bid_price_volume_list[0].volume);
       }
