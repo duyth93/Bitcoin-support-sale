@@ -1,0 +1,49 @@
+{
+  "name": "__MSG_appName__",
+  "version": "0.1.1",
+  "manifest_version": 2,
+    "permissions": [
+    "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "storage",
+    "*://*.westerncoin.co/*"
+  ],
+  "description": "__MSG_appDescription__",
+  "icons": {
+    "16": "images/icon-16.png",
+    "128": "images/icon-120.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "scripts": []
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "images/icon-16.png",
+      "38": "images/icon-32.png"
+    },
+    "default_title": "Bitcoin auto tool",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.westerncoin.co/*"
+      ],
+      "css": [
+        "styles/font-awesome.min.css",
+        "styles/mystyles.css",
+        "styles/jquery-ui.css"
+      ],
+      "js": [
+        "scripts/libs/jquery-3.2.1.min.js",
+        "scripts/libs/jsrender.min.js",
+        "scripts/libs/js.cookie.min.js",
+        "scripts/main.js",
+        "scripts/bitcoin-main-view.js"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}

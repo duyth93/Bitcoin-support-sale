@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Bitcoin auto tool",
+    "description": "The name of the application"
+  },
+  "appDescription": {
+    "message": "Bitcoin auto sale tool",
+    "description": "The description of the application"
+  }
+}

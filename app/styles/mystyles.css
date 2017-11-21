@@ -1,0 +1,52 @@
+.hidden {
+	display: none;
+}
+
+.ninja-input {
+    display:inline-block;
+    border:0;
+    padding:0;
+    outline:none;
+    margin:0 24px 0 0;
+}
+
+.section {
+	margin-bottom: 10px;
+	width: 600px;
+}
+
+#bitcoinMain {
+	z-index: 10000;
+	position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 590px;
+    min-height: 270px;
+    max-height: 310px;
+    overflow-y: visible;
+    overflow-x: hidden;
+    background-color: white;
+    border: 3px solid #73AD21;
+}
+
+ul.suggestion-list {
+	background-color: white;
+	left: 59px;
+	width: 200px;
+	position: absolute;
+	padding-left: 1px;
+
+}
+
+.suggestion-list li {
+	list-style-type: none;
+	padding: 2px;
+}
+.suggestion-list li:hover {
+	background-color: #e8e8e8;
+	cursor: pointer;
+}
+
+#transaction-list-table {
+	width: 570px;
+}
