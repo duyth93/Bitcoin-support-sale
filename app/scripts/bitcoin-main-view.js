@@ -7,7 +7,7 @@ BitcoinMainView.prototype = {
   <div id="inputForm">
     <h4>Buy/Sell WNC</h4>
     <div class="section">
-      BTC: <input type="number" value="{{:btc_balance}}" readonly id="ip_btc_balance" style="background-color: #eeeeee;">(BTC) - WCN: <input type="number" value="{{:wcn_balance}}" readonly id="ip_wcn_balance" style="background-color: #eeeeee;">(WNC)
+      BTC: <input type="number" value="{{:btc_balance}}" readonly id="ip_btc_balance" style="background-color: #eeeeee;">(BTC) - WCN: <input type="number" value="{{:wcn_balance}}" readonly id="ip_wnc_balance" style="background-color: #eeeeee;">(WNC)
     </div>
     <div class="section">
       Bid Price:
@@ -32,6 +32,10 @@ BitcoinMainView.prototype = {
       Sell Volume:
       <input id="ip_sell_volume" type="number" value="{{:sell_volume}}">
       <button id="btnSell">Sell WNC</button>
+    </div>
+    <div class="section">
+    Notice point:
+    <input id="notice_point" value="0.00000000" type="number">
     </div>
     <h4>My Pending Transactions</h4>
     <table class="table table-bordered table-condensed" id="transaction-list-table">
@@ -179,7 +183,7 @@ BitcoinMainView.prototype = {
     var templateBuy = $.templates(htmlBuy);
     var tempVolume, tempVolume2;
     var btcBalance;
-    var wcnBalance;
+    var wncBalance;
 
     // get old sell price and old sell volume
     var oldSellPrice = parseFloat($('#sell_price_volume_list li:first').data('value')).toFixed(8);
@@ -212,13 +216,14 @@ BitcoinMainView.prototype = {
           }
           $('#ip_bid_price').val(data.bid_price_volume_list[0].price);
           $('#ip_buy_volume').val(tempVolume2);
+          check_buy_sell_price_and_notice();
         }
       });
     });
 
     $.get('/dashboard/ajaxsellbtc', function(response) {
-      wcnBalance = parseFloat($(response).find('#balance2').val()).toFixed(8);
-      $('#ip_wcn_balance').val(wcnBalance);
+      wncBalance = parseFloat($(response).find('#balance2').val()).toFixed(8);
+      $('#ip_wnc_balance').val(wncBalance);
       $.get('/dashboard/ajaxmarketbuy', function(response) {
         $(response).find("table tbody tr").each(function(index, item){
           if(data.sell_price_volume_list.length < 5) {
@@ -235,12 +240,14 @@ BitcoinMainView.prototype = {
           tempVolume = data.sell_price_volume_list[0].volume;
           if (tempVolume < 1) {
             tempVolume = 1;
-          } else if (tempVolume > wcnBalance) {
-            tempVolume = wcnBalance;
+          } else if (tempVolume > wncBalance) {
+            tempVolume = wncBalance;
           }
           $('#ip_sell_price').val(data.sell_price_volume_list[0].price);
           $('#ip_sell_volume').val(tempVolume);
+          check_buy_sell_price_and_notice();
         }
+
       });
     });
   }
@@ -328,7 +335,7 @@ $(document).on('change', '.combo-box', function() {
 
 // $(document).on('change', '#sell_price_list', function() {
 //   var chosen = $("option:selected", this).data('id');
-//   var wcn_balance = parseFloat($('#ip_wcn_balance').val());
+//   var wcn_balance = parseFloat($('#ip_wnc_balance').val());
 //   if (chosen != 0) {
 //     var volume = parseFloat($("option:selected", this).data('volume'));
 
@@ -431,16 +438,17 @@ $(document).on('blur', '#ip_sell_price, #ip_sell_volume', function() {
 $(document).on('click', '.sell-price-list-item', function() {
   var value = parseFloat($(this).data('value')).toFixed(8);
   var volume = parseFloat($(this).data('volume')).toFixed(8);
-  var wcnBalance = parseFloat($('#ip_wcn_balance').val()).toFixed(8);
+  var wncBalance = parseFloat($('#ip_wnc_balance').val()).toFixed(8);
 
   if (volume < 1) {
     volume = 1;
-  } else if (volume > wcnBalance) {
-    volume = wcnBalance;
+  } else if (volume > wncBalance) {
+    volume = wncBalance;
   }
 
   $('#ip_sell_price').val(value);
   $('#ip_sell_volume').val(volume);
+  check_buy_sell_price_and_notice();
   $('#sell_price_volume_list').addClass('hidden');
 });
 
@@ -457,6 +465,7 @@ $(document).on('click', '.bid-price-list-item', function() {
 
   $('#ip_bid_price').val(value);
   $('#ip_buy_volume').val(volume);
+  check_buy_sell_price_and_notice();
   $('#bid_price_volume_list').addClass('hidden');
 });
 
@@ -470,3 +479,29 @@ $(document).on('click', 'body', function(evt){
     }
   }
 });
+
+function check_buy_sell_price_and_notice() {
+  var noticePoint = parseFloat($('#notice_point').val()).toFixed(8);
+  if (noticePoint != '' & noticePoint > 0) {
+    var sellPrice = parseFloat($('#ip_sell_price').val()).toFixed(8);
+    var sellVolume = parseFloat($('#ip_sell_volume').val()).toFixed(8);
+    var bidPrice = parseFloat($('#ip_bid_price').val()).toFixed(8);
+    var buyVolume = parseFloat($('#ip_buy_volume').val()).toFixed(8);
+    if (bidPrice - sellPrice > noticePoint) {
+      // render msg
+      var html = (function() {/*
+<div class="err-msg">
+  <div>Giá Buy: {{:bid_price}} --- {{:buy_volume}}</div>
+  <div>Giá Sell: {{:sell_price}} --- {{:sell_volume}}</div>
+  <div>X = {{:notice_point}}</div>
+</div>
+  */}).toString().match(/\n([\s\S]*)\n/)[1];
+      var template = $.templates(html);
+      var data = {'bid_price' : bidPrice, 'buy_volume' : buyVolume, 'sell_price' : sellPrice, 'sell_volume' : sellVolume, 'notice_point' : noticePoint};
+      $("#buybtc-loading").parent().parent().parent().append(template.render(data));
+      setTimeout(function(){
+        $('.err-msg:first').remove();
+      }, 3000);
+    }
+  }
+}
