@@ -3,6 +3,53 @@ var sellInputing = false, buyInputing = false;
 BitcoinMainView.prototype = {
   view: function() {
     var html = (function() {/*
+<div id="orders">
+  <div id="orders-container">
+    <div id="sell-orders" class="orders-container">
+      <h4>Sell Orders</h4>
+      <table class="table table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th>Price</th>
+            <th>WNC</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{for sell_order_list}}
+            <tr>
+              <tr data-key="{{:id}}">
+                <td style="text-align:left;">{{>price}}</td>
+                <td style="text-align:left;">{{>wnc}}</td>
+              </tr>
+            </tr>
+          {{/for}}
+        </tbody>
+      </table>
+    </div>
+
+    <div id="buy-orders" class="orders-container">
+      <h4>Buy Orders</h4>
+      <table class="table table-bordered table-condensed">
+        <thead>
+          <tr>
+            <th>Price</th>
+            <th>WNC</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{for buy_order_list}}
+            <tr>
+              <tr data-key="{{:id}}">
+                <td style="text-align:left;">{{>price}}</td>
+                <td style="text-align:left;">{{>wnc}}</td>
+              </tr>
+            </tr>
+          {{/for}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 <div id="bitcoinMain">
   <div id="inputForm">
     <h4>Buy/Sell WNC</h4>
@@ -76,14 +123,19 @@ BitcoinMainView.prototype = {
   },
   getData: function() {
     var data = bitcoinView.data;
+    data.sell_order_list = [];
+    data.buy_order_list = [];
     data.btc_balance = parseFloat($("#balance").val()).toFixed(8);
     data.wcn_balance = parseFloat($("#balance2").val()).toFixed(8);
     data.bid_price_volume_list = [];
     $("#marketsell table tbody tr").each(function(index, item){
+      var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
+      var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
       if(data.bid_price_volume_list.length < 5) {
-        var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
-        var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
         data.bid_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+      }
+      if(data.sell_order_list.length < 10) {
+        data.sell_order_list.push({id: index + 1, price: price, wnc: volume});
       }
     });
     // data.bid_price_volume_list.push({id: 0, price: "input", price_label: "Make me feel input", volume: "input", volume_label: "Make me feel input"});
@@ -91,10 +143,13 @@ BitcoinMainView.prototype = {
 
     data.sell_price_volume_list = [];
     $("#marketbuy table tbody tr").each(function(index, item){
+      var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
+      var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
       if(data.sell_price_volume_list.length < 5) {
-        var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
-        var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
         data.sell_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+      }
+      if(data.buy_order_list.length < 10) {
+        data.buy_order_list.push({id: index + 1, price: price, wnc: volume});
       }
     });
     // data.sell_price_volume_list.push({id: 0, price: "input", price_label: "Make me feel input", volume: "input", volume_label: "Make me feel input"});
@@ -167,6 +222,57 @@ BitcoinMainView.prototype = {
       $("#transaction-body").replaceWith(template.render(data));
     });
   },
+  updateSellBuyTable: function(data) {
+    var html = (function() {/*
+<div id="orders-container">
+  <div id="sell-orders" class="orders-container">
+    <h4>Sell Orders</h4>
+    <table class="table table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>Price</th>
+          <th>WNC</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{for sell_order_list}}
+          <tr>
+            <tr data-key="{{:id}}">
+              <td style="text-align:left;">{{>price}}</td>
+              <td style="text-align:left;">{{>wnc}}</td>
+            </tr>
+          </tr>
+        {{/for}}
+      </tbody>
+    </table>
+  </div>
+
+  <div id="buy-orders" class="orders-container">
+    <h4>Buy Orders</h4>
+    <table class="table table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>Price</th>
+          <th>WNC</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{for buy_order_list}}
+          <tr>
+            <tr data-key="{{:id}}">
+              <td style="text-align:left;">{{>price}}</td>
+              <td style="text-align:left;">{{>wnc}}</td>
+            </tr>
+          </tr>
+        {{/for}}
+      </tbody>
+    </table>
+  </div>
+</div>
+*/}).toString().match(/\n([\s\S]*)\n/)[1];
+    var template = $.templates(html);
+    $('#orders-container').replaceWith(template.render(data));
+  },
   updateSellBuyPrice: function() {
     var htmlSell = (function() {/*
 {{for sell_price_volume_list}}
@@ -178,7 +284,7 @@ BitcoinMainView.prototype = {
   <li id="li-suggest" data-value={{:price}} class="bid-price-list-item" data-volume={{:volume}}>{{>price}} --- {{>volume}}</li>
 {{/for}}
 */}).toString().match(/\n([\s\S]*)\n/)[1];
-    var data = {'sell_price_volume_list' : [], 'bid_price_volume_list' : []};
+    var data = {'sell_price_volume_list' : [], 'bid_price_volume_list' : [], 'sell_order_list' : [], 'buy_order_list' : []};
     var templateSell = $.templates(htmlSell);
     var templateBuy = $.templates(htmlBuy);
     var tempVolume, tempVolume2;
@@ -198,10 +304,13 @@ BitcoinMainView.prototype = {
       $('#ip_btc_balance').val(btcBalance);
       $.get('/dashboard/ajaxmarketsell', function(response) {
         $(response).find("table tbody tr").each(function(index, item){
+          var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
+          var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
           if(data.bid_price_volume_list.length < 5) {
-            var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
-            var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
             data.bid_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+          }
+          if(data.sell_order_list.length < 10) {
+            data.sell_order_list.push({id: index + 1, price: price, wnc: volume});
           }
         });
         $('#bid_price_volume_list').children().remove();
@@ -215,9 +324,12 @@ BitcoinMainView.prototype = {
             tempVolume2 = parseFloat(btcBalance / (data.bid_price_volume_list[0].price * 1.0025) - 0.5).toFixed(8);
           }
           $('#ip_bid_price').val(data.bid_price_volume_list[0].price);
+          $('#ip_bid_price').attr('data-volume', data.bid_price_volume_list[0].volume);
           $('#ip_buy_volume').val(tempVolume2);
           check_buy_sell_price_and_notice();
         }
+
+        bitcoinView.updateSellBuyTable(data);
       });
     });
 
@@ -226,10 +338,13 @@ BitcoinMainView.prototype = {
       $('#ip_wnc_balance').val(wncBalance);
       $.get('/dashboard/ajaxmarketbuy', function(response) {
         $(response).find("table tbody tr").each(function(index, item){
+          var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
+          var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
           if(data.sell_price_volume_list.length < 5) {
-            var price = parseFloat($(item).find("td").html().replace(",", "")).toFixed(8);
-            var volume = parseFloat($(item).find("td").next().html().replace(",", "")).toFixed(8);
             data.sell_price_volume_list.push({id: index + 1, price: price, price_label: price, volume: volume, volume_label: volume});
+          }
+          if(data.buy_order_list.length < 10) {
+            data.buy_order_list.push({id: index + 1, price: price, wnc: volume});
           }
         });
         $('#sell_price_volume_list').children().remove();
@@ -244,10 +359,12 @@ BitcoinMainView.prototype = {
             tempVolume = wncBalance;
           }
           $('#ip_sell_price').val(data.sell_price_volume_list[0].price);
+          $('#ip_sell_price').attr('data-volume', data.sell_price_volume_list[0].volume);
           $('#ip_sell_volume').val(tempVolume);
           check_buy_sell_price_and_notice();
         }
 
+        bitcoinView.updateSellBuyTable(data);
       });
     });
   }
@@ -440,6 +557,9 @@ $(document).on('click', '.sell-price-list-item', function() {
   var volume = parseFloat($(this).data('volume')).toFixed(8);
   var wncBalance = parseFloat($('#ip_wnc_balance').val()).toFixed(8);
 
+  // set data-val for #ip_sell_price
+  $('#ip_sell_price').attr('data-volume', volume);
+
   if (volume < 1) {
     volume = 1;
   } else if (volume > wncBalance) {
@@ -456,6 +576,9 @@ $(document).on('click', '.bid-price-list-item', function() {
   var value = parseFloat($(this).data('value')).toFixed(8);
   var volume = parseFloat($(this).data('volume')).toFixed(8);
   var btcBalance = parseFloat($('#ip_btc_balance').val()).toFixed(8);
+
+  // set data-val for #ip_bid_price
+  $('#ip_bid_price').attr('data-volume', volume);
 
   if (volume < 1) {
     volume = 1;
@@ -484,9 +607,9 @@ function check_buy_sell_price_and_notice() {
   var noticePoint = parseFloat($('#notice_point').val()).toFixed(8);
   if (noticePoint != '' & noticePoint > 0) {
     var sellPrice = parseFloat($('#ip_sell_price').val()).toFixed(8);
-    var sellVolume = parseFloat($('#ip_sell_volume').val()).toFixed(8);
+    var sellVolume = parseFloat($('#ip_sell_price').attr('data-volume')).toFixed(8);
     var bidPrice = parseFloat($('#ip_bid_price').val()).toFixed(8);
-    var buyVolume = parseFloat($('#ip_buy_volume').val()).toFixed(8);
+    var buyVolume = parseFloat($('#ip_bid_price').attr('data-volume')).toFixed(8);
     if (bidPrice - sellPrice > noticePoint) {
       // render msg
       var html = (function() {/*
@@ -499,9 +622,14 @@ function check_buy_sell_price_and_notice() {
       var template = $.templates(html);
       var data = {'bid_price' : bidPrice, 'buy_volume' : buyVolume, 'sell_price' : sellPrice, 'sell_volume' : sellVolume, 'notice_point' : noticePoint};
       $("#buybtc-loading").parent().parent().parent().append(template.render(data));
-      setTimeout(function(){
-        $('.err-msg:first').remove();
-      }, 3000);
+    } else {
+      remove_err_mes();
     }
+  } else {
+    remove_err_mes();
   }
+}
+
+function remove_err_mes() {
+  $('.err-msg').remove();
 }
