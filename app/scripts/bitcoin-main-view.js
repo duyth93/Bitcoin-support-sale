@@ -81,8 +81,10 @@ BitcoinMainView.prototype = {
       <button id="btnSell">Sell WNC</button>
     </div>
     <div class="section">
-    Notice point:
-    <input id="notice_point" value="0.00000000" type="number">
+      Difference:
+      <input id="difference_buy_sell" type="number">
+      Notice point:
+      <input id="notice_point" value="0.00000000" type="number">
     </div>
   </div>
   <div id="pending-transaction-container">
@@ -606,7 +608,17 @@ $(document).on('click', 'body', function(evt){
 });
 
 function check_buy_sell_price_and_notice() {
+  var noticePoint = parseFloat($('#notice_point').val()).toFixed(8);
+  var sellPrice = parseFloat($('#ip_sell_price').val()).toFixed(8);
+  var bidPrice = parseFloat($('#ip_bid_price').val()).toFixed(8);
+  var difference = parseFloat(sellPrice - bidPrice).toFixed(8);
+  $('#difference_buy_sell').val(difference);
 
+  if (noticePoint != '' && noticePoint > 0 && difference > noticePoint) {
+    $('#difference_buy_sell').addClass('warning');
+  } else {
+    $('#difference_buy_sell').removeClass('warning');
+  }
 }
 
 function check_buy_sell_price_and_notice_old_version() {
