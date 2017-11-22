@@ -13,7 +13,7 @@
   bottom: 340px;
   right: 0;
   width: 590px;
-  height: 370px;
+  height: 380px;
   overflow-y: hidden;
   overflow-x: hidden;
   background-color: white;
@@ -112,4 +112,8 @@ table#transaction-list-table th
 
 .btnCancelOrder {
   padding: 1px !important;
+}
+
+.warning {
+  background-color: yellow;
 }
