@@ -2,28 +2,19 @@
 	display: none;
 }
 
-.ninja-input {
-    display:inline-block;
-    border:0;
-    padding:0;
-    outline:none;
-    margin:0 24px 0 0;
-}
-
 .section {
 	margin-bottom: 10px;
 	width: 600px;
 }
 
-
 #orders {
   z-index: 10000;
   position: fixed;
-  bottom: 400px;
+  bottom: 340px;
   right: 0;
   width: 590px;
-  height: 350px;
-  overflow-y: visible;
+  height: 370px;
+  overflow-y: hidden;
   overflow-x: hidden;
   background-color: white;
   border: 3px solid #73AD21;
@@ -37,12 +28,11 @@
 #bitcoinMain {
 	z-index: 10000;
 	position: fixed;
-  bottom: 70px;
+  bottom: 0;
   right: 0;
   width: 590px;
-  height: 330px;
-  overflow-y: visible;
-  overflow-x: hidden;
+  height: 340px;
+  overflow: hidden;
   background-color: white;
   border: 3px solid #73AD21;
 }
@@ -65,8 +55,45 @@ ul.suggestion-list {
 	cursor: pointer;
 }
 
-#transaction-list-table {
-	width: 570px;
+#inputForm {
+  height: 175px;
+}
+
+#pending-transaction-container {
+  height: 180px;
+  /*overflow: scroll;*/
+}
+
+table#transaction-list-table tbody, table#transaction-list-table thead
+{
+    display: block;
+}
+
+table#transaction-list-table tbody
+{
+   overflow: auto;
+   height: 100px;
+}
+
+table#transaction-list-table {
+    border: 1px solid #f4f4f4;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
+table#transaction-list-table th, table#transaction-list-table td
+{
+    width: 140px;
+    padding: 5px;
+}
+
+table#transaction-list-table th
+{
+    text-align: center;
+    background: #b8cb2a;
+    color: #fdfef5;
+    border: 1px solid #f4f4f4;
 }
 
 .err-msg {
@@ -81,4 +108,8 @@ ul.suggestion-list {
   width: 400px;
   padding: 10px;
   font-size: 18px;
+}
+
+.btnCancelOrder {
+  padding: 1px !important;
 }

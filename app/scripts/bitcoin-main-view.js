@@ -84,8 +84,10 @@ BitcoinMainView.prototype = {
     Notice point:
     <input id="notice_point" value="0.00000000" type="number">
     </div>
+  </div>
+  <div id="pending-transaction-container">
     <h4>My Pending Transactions</h4>
-    <table class="table table-bordered table-condensed" id="transaction-list-table">
+    <table id="transaction-list-table">
       <thead>
         <tr>
           <th>Type</th>
@@ -604,6 +606,10 @@ $(document).on('click', 'body', function(evt){
 });
 
 function check_buy_sell_price_and_notice() {
+
+}
+
+function check_buy_sell_price_and_notice_old_version() {
   var noticePoint = parseFloat($('#notice_point').val()).toFixed(8);
   if (noticePoint != '' & noticePoint > 0) {
     var sellPrice = parseFloat($('#ip_sell_price').val()).toFixed(8);
