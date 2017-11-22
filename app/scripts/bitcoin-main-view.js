@@ -122,7 +122,7 @@ BitcoinMainView.prototype = {
     bitcoinView.reset();
     bitcoinView.template = $.templates(bitcoinView.view());
     parent.append(bitcoinView.template.render(bitcoinView.getData()));
-    setInterval(bitcoinView.updateSellBuyPrice, 1000);
+    setInterval(bitcoinView.updateSellBuyPrice, 500);
     return bitcoinView.data;
   },
   getData: function() {
